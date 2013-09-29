@@ -8,5 +8,6 @@
 	<classpathentry kind="lib" path="war/WEB-INF/lib/gson-2.2.4-javadoc.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/gson-2.2.4-sources.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/gson-2.2.4.jar" sourcepath="war/WEB-INF/lib/gson-2.2.4-sources.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/opencsv-2.3.jar"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>
