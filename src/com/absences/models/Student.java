@@ -12,6 +12,17 @@ public class Student {
 	private String firstName,lastName,fatherName,motherName;
 	private List<DailyAbsences> absences = new ArrayList<DailyAbsences>();
 	
+	public Student() {}
+	
+	public Student(long studentId, String firstName,String lastName,String fatherName,String motherName) 
+	{
+		this.studentId = studentId;
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.fatherName = fatherName;
+		this.motherName = motherName;
+	}
+	
 	public long getStudentId() {
 		return studentId;
 	}
