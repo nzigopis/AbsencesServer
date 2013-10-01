@@ -3,14 +3,18 @@ package com.absences.models;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Load;
 
 @Entity
 public class Student {
 	@Id private long studentId;
 	private String firstName,lastName,fatherName,motherName;
+	@SuppressWarnings("unused")
 	private List<DailyAbsences> absences = new ArrayList<DailyAbsences>();
+	@Load Ref<SchoolClass> attendsClass; 
 	
 	public Student() {}
 	
@@ -23,12 +27,12 @@ public class Student {
 		this.motherName = motherName;
 	}
 	
-	public long getStudentId() {
-		return studentId;
-	}
-	public void setStudentId(long studentId) {
-		this.studentId = studentId;
-	}
+	public SchoolClass getSchoolClass() { return attendsClass.get(); }
+    public void setSchoolClass(SchoolClass value) { attendsClass = Ref.create(value); }
+    
+	public long getStudentId() { return studentId; }
+	public void setStudentId(long studentId) { this.studentId = studentId; }
+	
 	public String getFirstName() {
 		return firstName;
 	}
