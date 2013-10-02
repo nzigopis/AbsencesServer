@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import au.com.bytecode.opencsv.CSVReader;
 
+import com.absences.models.SchoolClass;
 import com.absences.models.Student;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreInputStream;
@@ -71,7 +72,100 @@ public class UploadServlet extends HttpServlet
     private List<String> updateDb(List<String[]> rows)
     {
     	List<String> errors = new ArrayList<String>();
-    	Map<Long, String[]> validRows = new HashMap<Long, String[]>();
+    	
+    	Map<Long, String[]> validRows = getValidRows(rows, errors);
+    	
+    	List<Object> entitiesToSave = new ArrayList<Object>();
+    	Set<Long> existingIds = updateExistingStudents(validRows, entitiesToSave, errors);
+    	
+    	createNewStudents(validRows, entitiesToSave, existingIds);
+    	
+    	if (entitiesToSave.size() > 0)
+    		try
+    		{
+    			ofy().save().entities(entitiesToSave);
+    		}
+    		catch (Exception ex)
+    		{
+    			errors.add(ex.getMessage());
+    		}
+    	
+    	return errors;
+    }
+
+	private void createNewStudents(Map<Long, String[]> validRows,
+			List<Object> entitiesToSave, Set<Long> existingIds)
+	{
+		for (long studentId : validRows.keySet())
+    	{
+    		if (existingIds.contains(studentId))
+    			continue;
+    		
+    		// Add New Student
+    		String[] row = validRows.get(studentId);
+    		Student s = new Student(studentId, row[1], row[2], row[3], row[4]);
+    		entitiesToSave.add(s);
+    		
+    		SchoolClass c = ofy().load().type(SchoolClass.class).id(row[7]).now();
+    		if (c == null)
+    		{
+    			c = new SchoolClass();
+    			c.setClassId(row[7]);
+    			c.setClassDescription(row[7]);
+    			entitiesToSave.add(c);
+    		}
+    		s.setSchoolClass(c);
+    	}
+	}
+
+	private Set<Long> updateExistingStudents(Map<Long, String[]> validRows,
+			List<Object> entitiesToSave, List<String> errors)
+	{
+		Set<Long> existingIds = new HashSet<Long>(); 
+		Map<Long, Student> existingStudents = ofy().load().type(Student.class).ids(validRows.keySet());
+
+		for (Student student : existingStudents.values())
+    	{
+			String[] row = null;
+    		try
+    		{
+	    		row = validRows.get(student.getStudentId());
+	    		student.setFirstName(row[1]);
+	    		student.setLastName(row[2]);
+	    		student.setFatherName(row[3]);
+	    		student.setMotherName(row[4]);
+	    		
+	    		// Add to save list
+	    		entitiesToSave.add(student);
+	    		existingIds.add(student.getStudentId());
+
+	    		if (!student.getSchoolClass().getClassId().equalsIgnoreCase(row[7]))
+	    		{
+		    		SchoolClass c = ofy().load().type(SchoolClass.class).id(row[7]).now();
+		    		if (c == null)
+		    		{
+		    			c = new SchoolClass();
+		    			c.setClassId(row[7]);
+		    			c.setClassDescription(row[7]);
+		    			entitiesToSave.add(c);
+		    		}
+		    		student.setSchoolClass(c);
+	    		}
+    		}
+    		catch (Exception ex)
+    		{
+    			String rowData = "";
+    			if (row != null)
+    				rowData = Joiner.on(',').join(row);
+    			errors.add(ex.getMessage() + " " + rowData);
+    		}
+    	}
+		return existingIds;
+	}
+
+	private Map<Long, String[]> getValidRows(List<String[]> rows, List<String> errors)
+	{
+		Map<Long, String[]> validRows = new HashMap<Long, String[]>();
     	
     	int line = 0;
     	for (String[] row : rows)
@@ -85,52 +179,6 @@ public class UploadServlet extends HttpServlet
     			errors.add("Γραμμή " + (line + 1) + ". Ο AM [" + row[0] + "] δεν είναι αριθμός.");
     		}
     	}
-    	Set<Long> existingIds = new HashSet<Long>(); 
-    	Map<Long, Student> existingStudents = ofy().load().type(Student.class).ids(validRows.keySet());
-
-    	List<Student> studentsToSave = new ArrayList<Student>();
-    	
-    	for (Student student : existingStudents.values())
-    	{
-    		try
-    		{
-	    		String[] row = validRows.get(student.getStudentId());
-	    		student.setFirstName(row[1]);
-	    		student.setLastName(row[2]);
-	    		student.setFatherName(row[3]);
-	    		student.setMotherName(row[4]);
-	    		
-	    		// Add to save list
-	    		studentsToSave.add(student);
-	    		
-	    		existingIds.add(student.getStudentId());
-    		}
-    		catch (Exception ex)
-    		{
-    			errors.add(ex.getMessage() + " " + Joiner.on(',').join(rows));
-    		}
-    	}
-    	
-    	for (long studentId : validRows.keySet())
-    	{
-    		if (existingIds.contains(studentId))
-    			continue;
-    		
-    		// Add New Student
-    		String[] row = validRows.get(studentId);
-    		studentsToSave.add(new Student(studentId, row[1], row[2], row[3], row[4]));
-    	}
-    	
-    	if (studentsToSave.size() > 0)
-    		try
-    		{
-    			ofy().save().entities(studentsToSave);
-    		}
-    		catch (Exception ex)
-    		{
-    			errors.add(ex.getMessage());
-    		}
-    	
-    	return errors;
-    }
+		return validRows;
+	}
 }

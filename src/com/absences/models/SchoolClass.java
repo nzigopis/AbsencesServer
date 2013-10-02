@@ -4,9 +4,20 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 
 @Entity
-public class SchoolClass {
+public class SchoolClass 
+{
 	@Id private String classId;
 	private String classDescription;
+	
+	public static final SchoolClass NullClass = new SchoolClass("", "");
+	
+	public SchoolClass() {}
+	
+	public SchoolClass(String classId, String classDescription) 
+	{
+		this.classId = classId;
+		this.classDescription = classDescription;
+	}
 	
 	public String getClassId() {
 		return classId;

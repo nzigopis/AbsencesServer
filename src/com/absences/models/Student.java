@@ -27,7 +27,7 @@ public class Student {
 		this.motherName = motherName;
 	}
 	
-	public SchoolClass getSchoolClass() { return attendsClass.get(); }
+	public SchoolClass getSchoolClass() { return attendsClass == null ? SchoolClass.NullClass : attendsClass.get(); }
     public void setSchoolClass(SchoolClass value) { attendsClass = Ref.create(value); }
     
 	public long getStudentId() { return studentId; }
