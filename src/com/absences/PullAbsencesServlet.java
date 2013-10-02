@@ -1,11 +1,16 @@
 package com.absences;
 import java.io.IOException;
+import java.io.StringWriter;
+import java.util.List;
 
 import javax.servlet.http.*;
 
+import com.absences.models.SchoolClass;
+import com.absences.models.Student;
 import com.absences.models.User;
 import com.google.gson.*;
 import com.googlecode.objectify.cmd.LoadType;
+
 import static com.googlecode.objectify.ObjectifyService.ofy;
 
 @SuppressWarnings("serial")
@@ -18,20 +23,24 @@ public class PullAbsencesServlet extends HttpServlet
 	
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException 
 	{
-		LoadType<User> r = ofy().load().type(User.class);
-		User u = null;
-		if (r.count() == 0)
+		String s = "";
+		try
 		{
-			u = new User("admin", "admin");
-			ofy().save().entity(u).now();
+			List<User> users = ofy().load().type(User.class).list();
+		
+			List<SchoolClass> classes = ofy().load().type(SchoolClass.class).list();
+			List<Student> students = ofy().load().type(Student.class).list();
+			
+			Gson gson = new Gson();
+			s = String.format("{\"users\": %s, \"classes\": %s, \"students\": %s}", 
+				gson.toJson(users), gson.toJson(classes), gson.toJson(students));
 		}
-		else
+		catch (Exception ex)
 		{
-			u = r.first().now();
+			s = ex.getMessage();
 		}
-		Gson gson = new Gson();
-		String res = gson.toJson(u);
 		resp.setContentType("text/json");
-		resp.getWriter().println(res);
+		resp.getWriter().println(s);
+		resp.getWriter().close();
 	}
 }
