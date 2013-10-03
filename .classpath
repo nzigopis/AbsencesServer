@@ -11,5 +11,6 @@
 	<classpathentry kind="lib" path="war/WEB-INF/lib/objectify-4.0rc1.jar" sourcepath="war/WEB-INF/lib/objectify-4.0rc1-sources.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/objectify-4.0rc1-javadoc.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/objectify-4.0rc1-sources.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/juniversalchardet-1.0.3.jar"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>

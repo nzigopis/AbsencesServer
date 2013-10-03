@@ -27,19 +27,22 @@ public class PullAbsencesServlet extends HttpServlet
 		try
 		{
 			List<User> users = ofy().load().type(User.class).list();
-		
+			if (users.size() == 0)
+				users.add(new User("admin","admin"));
+			
 			List<SchoolClass> classes = ofy().load().type(SchoolClass.class).list();
 			List<Student> students = ofy().load().type(Student.class).list();
 			
 			Gson gson = new Gson();
 			s = String.format("{\"users\": %s, \"classes\": %s, \"students\": %s}", 
-				gson.toJson(users), gson.toJson(classes), gson.toJson(students));
+					gson.toJson(users), gson.toJson(classes), gson.toJson(students));
 		}
 		catch (Exception ex)
 		{
 			s = ex.getMessage();
 		}
-		resp.setContentType("text/json");
+		resp.setContentType("text/json; charset=utf-8");
+//		resp.setCharacterEncoding("UTF-8");
 		resp.getWriter().println(s);
 		resp.getWriter().close();
 	}

@@ -1,10 +1,12 @@
 package com.absences;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,9 +30,13 @@ import com.google.common.base.Joiner;
 
 import static com.googlecode.objectify.ObjectifyService.ofy;
 
+import org.mozilla.universalchardet.UniversalDetector;
+
 @SuppressWarnings("serial")
 public class UploadServlet extends HttpServlet 
 {
+	private final Charset CP1523 = Charset.forName("Cp1253");
+	
 	static 
 	{
 		ObjectifyInitialize.Dummy();
@@ -49,25 +55,63 @@ public class UploadServlet extends HttpServlet
         } 
         else 
         {
-        	BlobstoreInputStream is = new BlobstoreInputStream(bkey);
-        	CSVReader csvReader = new CSVReader(new InputStreamReader(is, "CP1252"),';');
-        	List<String[]> rows = csvReader.readAll();
-        	csvReader.close();
+        	List<String[]> rows = readUploadedBlob(bkey);
         	
         	List<String> updateRes = updateDb(rows);
         	
-        	res.setCharacterEncoding("UTF-8");
-        	res.setContentType("text/html");
-        	PrintWriter w = res.getWriter();
-        	w.printf("<html><body><h1>Προβλήματα Ενημέρωσης.</h1><ol>");
-        	for (String error : updateRes)
-        	{
-        		w.printf("<li>%s</li>", error);
-        	}
-        	w.println("</table></ol></html>");
-        	w.close();
+        	printUploadResult(res, updateRes);
         }
     }
+
+	private void printUploadResult(HttpServletResponse res,
+			List<String> updateRes) throws IOException
+	{
+		res.setCharacterEncoding("UTF-8");
+		res.setContentType("text/html");
+		PrintWriter w = res.getWriter();
+		w.printf("<html><body><h1>Προβλήματα Ενημέρωσης.</h1><ol>");
+		for (String error : updateRes)
+		{
+			w.printf("<li>%s</li>", error);
+		}
+		w.println("</table></ol></html>");
+		w.close();
+	}
+
+	private List<String[]> readUploadedBlob(BlobKey bkey) throws IOException, UnsupportedEncodingException
+	{
+		Charset encoding = CP1523;
+		
+		BlobstoreInputStream is = new BlobstoreInputStream(bkey);
+		String encName = detectEncoding(is);
+		is.close();
+		if (encName != null)
+			encoding = Charset.forName(encName);
+		
+		is = new BlobstoreInputStream(bkey);
+		
+		CSVReader csvReader = new CSVReader(new InputStreamReader(is, encoding),';'); 
+		List<String[]> rows = csvReader.readAll();
+		csvReader.close();
+
+		return rows;
+	}
+	
+	private String detectEncoding(InputStream is) throws java.io.IOException 
+	{
+	    byte[] buf = new byte[4096];
+	    UniversalDetector detector = new UniversalDetector(null);
+	    int nread;
+	    while ((nread = is.read(buf)) > 0 && !detector.isDone()) 
+	    {
+	      detector.handleData(buf, 0, nread);
+	    }
+	    detector.dataEnd();
+	    String encoding = detector.getDetectedCharset();
+	    detector.reset();
+	    
+	    return encoding;
+	  }
 
     private List<String> updateDb(List<String[]> rows)
     {
