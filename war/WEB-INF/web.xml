@@ -14,6 +14,15 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 	</servlet-mapping>
 
 	<servlet>
+		<servlet-name>PushAbsences</servlet-name>
+		<servlet-class>com.absences.PushAbsencesServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>PushAbsences</servlet-name>
+		<url-pattern>/PushAbsences</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
 		<servlet-name>UploadServlet</servlet-name>
 		<servlet-class>com.absences.UploadServlet</servlet-class>
 	</servlet>
