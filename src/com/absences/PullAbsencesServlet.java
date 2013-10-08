@@ -1,6 +1,5 @@
 package com.absences;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.List;
 
 import javax.servlet.http.*;
@@ -9,8 +8,6 @@ import com.absences.models.SchoolClass;
 import com.absences.models.Student;
 import com.absences.models.User;
 import com.google.gson.*;
-import com.googlecode.objectify.cmd.LoadType;
-
 import static com.googlecode.objectify.ObjectifyService.ofy;
 
 @SuppressWarnings("serial")
